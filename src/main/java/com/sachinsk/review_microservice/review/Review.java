@@ -1,7 +1,5 @@
 package com.sachinsk.review_microservice.review;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.sachinsk.myjobapp.company.Company;
 import jakarta.persistence.*;
 
 @Entity
@@ -12,10 +10,7 @@ public class Review {
     private String title;
     private String description;
     private double rating;
-
-    @JsonIgnore     // to ignore any exceptions since we have same relationship in Company.java as well
-    @ManyToOne
-    private Company company;
+    private Long companyId;
 
     public Review() {
     }
@@ -52,11 +47,11 @@ public class Review {
         this.rating = rating;
     }
 
-    public Company getCompany() {
-        return company;
+    public Long getCompanyId() {
+        return companyId;
     }
 
-    public void setCompany(Company company) {
-        this.company = company;
+    public void setCompanyId(Long companyId) {
+        this.companyId = companyId;
     }
 }

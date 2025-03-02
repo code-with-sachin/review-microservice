@@ -1,10 +1,8 @@
 package com.sachinsk.review_microservice.review.impl;
 
-import com.sachinsk.myjobapp.company.Company;
-import com.sachinsk.myjobapp.company.CompanyService;
-import com.sachinsk.myjobapp.review.Review;
-import com.sachinsk.myjobapp.review.ReviewRepository;
-import com.sachinsk.myjobapp.review.ReviewService;
+import com.sachinsk.review_microservice.review.Review;
+import com.sachinsk.review_microservice.review.ReviewRepository;
+import com.sachinsk.review_microservice.review.ReviewService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,16 +11,10 @@ import java.util.List;
 public class ReviewServiceImpl implements ReviewService {
 
     private final ReviewRepository reviewRepository;
-    private final CompanyService companyService;
 
-    public ReviewServiceImpl(ReviewRepository reviewRepository, CompanyService companyService) {
+    public ReviewServiceImpl(ReviewRepository reviewRepository) {
         this.reviewRepository = reviewRepository;
-        this.companyService = companyService;
     }
-
-//    public ReviewServiceImpl(CompanyService companyService) {
-//        this.companyService = companyService;
-//    }
 
     @Override
     public List<Review> getAllReviews(Long companyId) {
@@ -32,9 +24,8 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public boolean addReview(Long companyId, Review review) {
-        Company company = companyService.getCompanyById(companyId);
-        if (company != null) {
-            review.setCompany(company);
+        if (companyId != null && review != null) {
+            review.setCompanyId(companyId);
             reviewRepository.save(review);
             return true;
         } else {
@@ -43,36 +34,29 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public Review getReviewById(Long companyId, Long reviewId) {
-        Company company = companyService.getCompanyById(companyId);
-        //to get all reviews that exist in Review Table, then get specific review by company id
-        List<Review> reviews = getAllReviews(companyId);
-        return reviews.stream()
-                .filter(review -> review.getId().equals(reviewId))
-                .findFirst()
-                .orElse(null);
+    public Review getReviewById(Long reviewId) {
+        return reviewRepository.findById(reviewId).orElse(null);
     }
 
     @Override
-    public boolean updateReviewById(Long companyId, Long reviewId, Review updatedReview) {
-        if (companyService.getCompanyById(companyId) != null && reviewRepository.existsById(reviewId)) {
-            updatedReview.setCompany(companyService.getCompanyById(companyId));
-            updatedReview.setId(reviewId);
-            reviewRepository.save(updatedReview);
+    public boolean updateReviewById(Long reviewId, Review updatedReview) {
+        Review review = reviewRepository.findById(reviewId).orElse(null);
+        if (review != null) {
+            review.setTitle(updatedReview.getTitle());
+            review.setDescription(updatedReview.getDescription());
+            review.setRating(updatedReview.getRating());
+            review.setCompanyId(updatedReview.getCompanyId());
+            reviewRepository.save(review);
             return true;
         }
         return false;
     }
 
     @Override
-    public boolean deleteReviewById(Long companyId, Long reviewId) {
-        if (companyService.getCompanyById(companyId) != null && reviewRepository.existsById(reviewId)) {
-            Review review = reviewRepository.findById(reviewId).orElse(null);
-            Company company = review.getCompany();
-            company.getReviews().remove(review);
-            review.setCompany(null);
-            companyService.updateCompany(company, companyId);
-            reviewRepository.deleteById(reviewId);
+    public boolean deleteReviewById(Long reviewId) {
+        Review review = reviewRepository.findById(reviewId).orElse(null);
+        if (review != null) {
+            reviewRepository.delete(review);
             return true;
         }
         return false;
